@@ -1,0 +1,128 @@
+diff --git a/src/custom_matrix.h b/src/custom_matrix.h
+index dc9ffc4..56dd145 100644
+--- a/src/custom_matrix.h
++++ b/src/custom_matrix.h
+@@ -21,7 +21,7 @@
+ #define MATRIX_AVX_PADDING(len) (((len + 255) / 256) * 256)
+ 
+ #define MAX_K 8
+-#define WORD_SIZE (8 * sizeof(word))
++#define CAL_WORD_SIZE (8 * sizeof(word))
+ 
+ 
+ // TODO, create a class out of this
+@@ -336,7 +336,7 @@ static size_t matrix_gauss_submatrix(mzd_t *__restrict__ M,
+ 		int found = 0;
+ 		for (size_t i = start_row; i < rows; ++i) {
+ 			for (size_t l = 0; l < j - c; ++l) {
+-				if ((M->rows[i][(c + l) / WORD_SIZE] >> ((c + l) % WORD_SIZE)) & 1) {
++				if ((M->rows[i][(c + l) / CAL_WORD_SIZE] >> ((c + l) % CAL_WORD_SIZE)) & 1) {
+ 					xor_avx1_new((uint8_t *) M->rows[r + l],
+ 					             (uint8_t *) M->rows[i],
+ 					             (uint8_t *) M->rows[i],
+@@ -344,10 +344,10 @@ static size_t matrix_gauss_submatrix(mzd_t *__restrict__ M,
+ 				}
+ 			}
+ 
+-			if ((M->rows[i][j / WORD_SIZE] >> (j % WORD_SIZE)) & 1) {
++			if ((M->rows[i][j / CAL_WORD_SIZE] >> (j % CAL_WORD_SIZE)) & 1) {
+ 				matrix_swap_rows_new(M, i, start_row);
+ 				for (size_t l = r; l < start_row; ++l) {
+-					if ((M->rows[l][j / WORD_SIZE] >> (j % WORD_SIZE)) & 1) {
++					if ((M->rows[l][j / CAL_WORD_SIZE] >> (j % CAL_WORD_SIZE)) & 1) {
+ 						xor_avx1_new((uint8_t *) M->rows[start_row],
+ 						             (uint8_t *) M->rows[l],
+ 						             (uint8_t *) M->rows[l],
+@@ -384,7 +384,7 @@ inline size_t matrix_gauss_submatrix_opt(mzd_t *__restrict__ M,
+ 		int found = 0;
+ 		for (size_t i = start_row; i < rstop; ++i) {
+ 			for (size_t l = 0; l < j - c; ++l) {
+-				if ((M->rows[i][(c + l) / WORD_SIZE] >> ((c + l) % WORD_SIZE)) & 1) {
++				if ((M->rows[i][(c + l) / CAL_WORD_SIZE] >> ((c + l) % CAL_WORD_SIZE)) & 1) {
+ 					xor_avx1_new((uint8_t *) M->rows[r + l],
+ 					             (uint8_t *) M->rows[i],
+ 					             (uint8_t *) M->rows[i],
+@@ -392,10 +392,10 @@ inline size_t matrix_gauss_submatrix_opt(mzd_t *__restrict__ M,
+ 				}
+ 			}
+ 
+-			if ((M->rows[i][j / WORD_SIZE] >> (j % WORD_SIZE)) & 1) {
++			if ((M->rows[i][j / CAL_WORD_SIZE] >> (j % CAL_WORD_SIZE)) & 1) {
+ 				matrix_swap_rows_new(M, i, start_row);
+ 				for (size_t l = r; l < start_row; ++l) {
+-					if ((M->rows[l][j / WORD_SIZE] >> (j % WORD_SIZE)) & 1) {
++					if ((M->rows[l][j / CAL_WORD_SIZE] >> (j % CAL_WORD_SIZE)) & 1) {
+ 						xor_avx1_new((uint8_t *) M->rows[start_row],
+ 						             (uint8_t *) M->rows[l],
+ 						             (uint8_t *) M->rows[l],
+@@ -413,7 +413,7 @@ inline size_t matrix_gauss_submatrix_opt(mzd_t *__restrict__ M,
+ 		if (found == 0) {
+ 			for (size_t i = lwin_start; i < rows; ++i) {
+ 				for (size_t l = 0; l < j - c; ++l) {
+-					if ((M->rows[i][(c + l) / WORD_SIZE] >> ((c + l) % WORD_SIZE)) & 1) {
++					if ((M->rows[i][(c + l) / CAL_WORD_SIZE] >> ((c + l) % CAL_WORD_SIZE)) & 1) {
+ 						xor_avx1_new((uint8_t *) M->rows[r + l],
+ 						             (uint8_t *) M->rows[i],
+ 						             (uint8_t *) M->rows[i],
+@@ -421,10 +421,10 @@ inline size_t matrix_gauss_submatrix_opt(mzd_t *__restrict__ M,
+ 					}
+ 				}
+ 
+-				if ((M->rows[i][j / WORD_SIZE] >> (j % WORD_SIZE)) & 1) {
++				if ((M->rows[i][j / CAL_WORD_SIZE] >> (j % CAL_WORD_SIZE)) & 1) {
+ 					matrix_swap_rows_new(M, i, start_row);
+ 					for (size_t l = r; l < start_row; ++l) {
+-						if ((M->rows[l][j / WORD_SIZE] >> (j % WORD_SIZE)) & 1) {
++						if ((M->rows[l][j / CAL_WORD_SIZE] >> (j % CAL_WORD_SIZE)) & 1) {
+ 							xor_avx1_new((uint8_t *) M->rows[start_row],
+ 							             (uint8_t *) M->rows[l],
+ 							             (uint8_t *) M->rows[l],
+@@ -476,15 +476,15 @@ uint64_t matrix_read_bits(mzd_t *M,
+                       const size_t x,
+                       const size_t y,
+                       const size_t nn) noexcept {
+-	const uint32_t spot  = y % WORD_SIZE;
+-	const uint64_t block = y / WORD_SIZE;
++	const uint32_t spot  = y % CAL_WORD_SIZE;
++	const uint64_t block = y / CAL_WORD_SIZE;
+ 
+ 	// this must be negative...
+-	const int32_t spill = spot + nn - WORD_SIZE;
++	const int32_t spill = spot + nn - CAL_WORD_SIZE;
+ 	uint64_t temp = (spill <= 0) ? M->rows[x][block] << -spill
+-	                         : (M->rows[x][block + 1] << (WORD_SIZE - spill)) |
++	                         : (M->rows[x][block + 1] << (CAL_WORD_SIZE - spill)) |
+ 	                           (M->rows[x][block] >> spill);
+-	return temp >> (WORD_SIZE - nn);
++	return temp >> (CAL_WORD_SIZE - nn);
+ }
+ 
+ 
+@@ -856,15 +856,15 @@ size_t matrix_echelonize_partial_plusfix_opt (
+ 	mzd_transpose(AT, A);
+ 
+ 	// constexpr auto unitpos = create_array_impl<uint16_t, n-k-l>(std::make_index_sequence<n-k-l>{});
+-	// std::vector<uint16_t> unitpos(nkl, zero);
+-	// std::vector<uint16_t> posfix(n, zero);
++	std::vector<uint16_t> unitpos(nkl, zero);
++	std::vector<uint16_t> posfix(n, zero);
+ 	//auto posfix = create_array_impl<uint16_t, n>(std::make_index_sequence<n>{});
+ 
+ 	//uint16_t unitpos[nkl] = {[0 ... nkl-1] = zero};
+ 	//uint16_t posfix [n] = {[0 ... n-1] = zero};
+ 	
+-	static uint16_t unitpos[nkl];
+-	static uint16_t posfix [n];
++	// static uint16_t unitpos[nkl];
++	// static uint16_t posfix [n];
+ 	for (uint32_t i = 0; i < nkl; ++i) {
+ 		unitpos[i] = zero;
+ 	}
+@@ -960,6 +960,7 @@ size_t matrix_echelonize_partial_plusfix_opt (
+ 	// apply the final gaussian elimination on the first coordinates
+ 	matrix_echelonize_partial_opt(A, m4ri_k, nkl-unitctr, nkl, matrix_data);
+ 	// std::cout << unitctr << " " << nkl-unitctr << "\n";
++
+ 	return nkl;
+ #else
+ 	return matrix_echelonize_partial_plusfix(A, m4ri_k, n - k - l, matrix_data, 0, n - k - l, 0, P);
