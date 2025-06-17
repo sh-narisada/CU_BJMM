@@ -28,8 +28,8 @@
 * $\texttt{cuBJMM}^+$: 
     * This software uses [cryptanalysislib](https://github.com/FloydZ/cryptanalysislib) and licensed open-source software as follows:
         * [m4ri](https://github.com/malb/m4ri)
-            *  General Public License Version 2 or later (GPLv2+).
-    * This software is licensed under GPLv2+.
+            *  GPL-2.0 license
+    * This software is licensed under GPL-2.0.
     * The license follows m4ri.
 
 * Bit security estimator:
